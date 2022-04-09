@@ -2,7 +2,7 @@ const { MessageAttachment, Client, Intents } = require('discord.js');
 
 const dotenv = require("dotenv");
 
-const math = require("mathjs")
+const math = require("./math.js")
 
 const Game = require("./Game");
 const games = new Map();
