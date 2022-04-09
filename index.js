@@ -6,6 +6,7 @@ const math = require("mathjs")
 
 const Game = require("./Game");
 const games = new Map();
+const previousGames = new Map();
 const channelOpts = new Map();
 
 dotenv.config({ path: "./secrets.env" });
@@ -125,6 +126,7 @@ client.on("messageCreate", async message => {
         str += "```end (deletes a lobby and game)```";
         str += "```restart (restarts the game and keep the lobby)```";
         str += "```soldiers <number> (sets the number of soldiers for yourself)```";
+        str += "```obstacles <none, low, normal or high> (sets the amount of obstacles)```";
         str += "```skip (skips your turn)```";
         str += "```settings (shows the saved settings)```";
         str += "```settings <option=value,option2=value2...> (sets settings for the channel !!ON YOUR OWN RISK!!)```";
@@ -157,6 +159,7 @@ client.on("messageCreate", async message => {
             return message.channel.send("No game to end");
 
         games.delete(message.channelId);
+        previousGames.delete(message.channelId);
         return message.channel.send("Ended game");
     } else if (command == "start") {
         await startGame(message);
@@ -177,12 +180,18 @@ client.on("messageCreate", async message => {
             message.channel.send("Not your turn right now bro");
         }
     } else if (command == "restart") {
-        if (!games.has(message.channelId))
+        console.log(previousGames)
+        if (!games.has(message.channelId) && !previousGames.has(message.channelId))
             return message.channel.send("No active game in this channel");
 
-        const game = games.get(message.channelId);
+        const game = games.get(message.channelId) || previousGames.get(message.channelId);
+
+        games.set(message.channelId, game);
+
         game.soldiers = [];
         game.obstacles = [];
+
+        game.playersInLobby.forEach(p => p.count = 0);
 
         await startGame(message);
     } else if (command == "soldiers") {
@@ -208,6 +217,39 @@ client.on("messageCreate", async message => {
         matchingPlayers.forEach(p => p.count = count);
         
         message.channel.send(`Changed so that <@${message.author.id}> has ${count} soldiers`);
+    }
+    else if (command == "obstacles") {
+        if (!games.has(message.channelId))
+            return message.channel.send("No active game in this channel");
+
+        const game = games.get(message.channelId);
+        if (game.hasStarted)
+            return message.channel.send("Cannot change obstacles when a game has started");
+
+        if (!game.playersInLobby.find(player => player.id == message.author.id))
+            return message.channel.send("You are not in the lobby bruv");
+
+        if (!["none", "low", "normal", "high"].includes(args)) {
+            return message.channel.send("Invalid obstacle option");
+        }
+
+        if (args == "none") {
+            game.settings.noObstacles = 1;
+        } else if (args == "low") {
+            game.settings.noObstacles = 0;
+            game.settings.obstacleSpacing = 35;
+            game.settings.maxRadius = 3;    
+        } else if (args == "normal") { // default
+            game.settings.noObstacles = 0;
+            game.settings.obstacleSpacing = 22;
+            game.settings.maxRadius = 4;
+        } else if (args == "high") {
+            game.settings.noObstacles = 0;
+            game.settings.obstacleSpacing = 17;
+            game.settings.maxRadius = 6;
+        }
+        
+        message.channel.send("Changed obstacle settings to " + args);
     } else if (command == "settings") {
         const defaults = new Game().settings;
 
@@ -273,7 +315,9 @@ client.on("messageCreate", async message => {
 
         if (game.isGameOver()) {
             const winningTeam = game.getAlivePlayers()[0].side == 0 ? "Team 1" : "Team 2"; 
-            message.channel.send("Game finished! " + winningTeam + " won!🥳🥳");
+            message.channel.send("Game finished! " + winningTeam + " won!🥳🥳\nType 'restart' to play again with the same lobby");
+
+            previousGames.set(message.channelId, game);
             
             // Delete the lobby
             games.delete(message.channelId)

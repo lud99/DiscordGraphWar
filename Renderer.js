@@ -7,7 +7,7 @@ class Renderer {
         this.canvas = createCanvas(CanvasWidth, CanvasHeight);
         this.ctx = this.canvas.getContext('2d');
 
-        this.xstep = (MaxX() - MinX()) / CanvasWidth;
+        this.xstep = (MaxX() - MinX()) / CanvasWidth / 10;
 
         this.gridSpacing = 5;
         this.shouldDrawGrid = true;
@@ -49,6 +49,7 @@ class Renderer {
             else
                 var y = f(x) + constant;
 
+
             if (typeof y != "number") return;
 
             if (isNaN(y)) return;
@@ -56,10 +57,17 @@ class Renderer {
             
             if (paint) {
                 if (first) {
-                    ctx.moveTo(XC(x), YC(y));
-                    first = false;
+                    if (y < MaxY() && y > MinY()) {
+                        ctx.moveTo(XC(x), YC(y));
+                        first = false;
+                    }
                 } else {
-                    ctx.lineTo(XC(x), YC(y));
+                    if (y > MaxY() || y < MinY()) {
+                        ctx.stroke();
+                        first = true;
+                    } else {
+                        ctx.lineTo(XC(x), YC(y));
+                    }
                 }
             }
             

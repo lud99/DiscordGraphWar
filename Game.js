@@ -22,6 +22,7 @@ class Game {
         this.hasStarted = false;
 
         this.settings = {
+            noObstacles: 0,
             obstacleSpacing: 22,
             obstacleRandomness: 20,
             obstaclePadding: 5,
@@ -29,7 +30,7 @@ class Game {
             edgeObstacleRandomness: 4,
             rectangleSpawnRate: 0.9,
             minRadius: 2,
-            maxRadius: 5,
+            maxRadius: 4,
             gridSpacing: 5,
             shouldDrawGrid: 0,
             playerSize: 0.35
@@ -191,7 +192,9 @@ class Game {
         const { obstacleSpacing, obstacleRandomness, obstaclePadding,
             rectangleSpawnRate,
             minRadius,
-            maxRadius, edgeObstacleRandomness, edgeObstacleSpacing } = this.settings;
+            maxRadius, edgeObstacleRandomness, edgeObstacleSpacing, noObstacles } = this.settings;
+
+        if (noObstacles) return true;
 
         const startTime = Date.now();
         for (let x = MinX() + obstaclePadding; x <= MaxX() - obstaclePadding; x += obstacleSpacing) {
