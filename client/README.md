@@ -1,4 +1,7 @@
 # Discord Graphwar
+
+![Screenshot](shot1.png)
+
 This is a version of the classic game [Graphwar](https://github.com/catabriga/graphwar) that is playable on a Discord server.
 
 The game plays like normal for the most part. Some things had to be cut from the original, notably the animations and alwats putting the current player at the left side of the plane. At this stage there are no AI players either.
