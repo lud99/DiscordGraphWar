@@ -309,7 +309,7 @@ client.on("messageCreate", async message => {
 
         if (error) return message.channel.send(error.message || error);
 
-        const { currentTurnImage, nextTurnImage } = await game.sendFunction(f);
+        const { currentTurnImage, nextTurnImage } = await game.sendFunction(f, expr);
 
         await sendGameImages(message, currentTurnImage, nextTurnImage);
 

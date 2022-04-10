@@ -59,7 +59,7 @@ class Game {
         this.renderer.draw(this.currentSoldierId);
     }
 
-    async sendFunction(f) {
+    async sendFunction(f, fStr) {
         const start = Date.now();
 
         const currentSoldier = this.getCurrentSoldier();
@@ -71,8 +71,10 @@ class Game {
 
         //this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, true, true);
 
+        let highAcc = fStr.includes("/") || fStr.includes("log") || fStr.includes("^-");
+
         this.renderer.draw(this.currentSoldierId);
-        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, true, true);
+        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, highAcc, true, true, true);
 
         const currentTurnImage = this.renderer.canvas.toDataURL();
 

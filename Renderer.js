@@ -34,13 +34,24 @@ class Renderer {
         this.game.soldiers.find(soldier => soldier.internalId == currentSoldierId).draw(this.ctx, true, this.scale);
     }
 
-    async RenderFunction(f, startX, startY, currentSoldierId, paint = true, carve = true, compute = true) {
+    async RenderFunction(f, startX, startY, currentSoldierId, highAcc = false, paint = true, carve = true, compute = true) {
         const ctx = this.ctx;
 
         var first = true;
 
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#ff0000";
+
+        this.xstepDraw = (MaxX() - MinX()) / CanvasWidth / 10;
+        this.xstepCompute = (MaxX() - MinX()) / CanvasWidth / 50;
+
+        let xstepDraw = this.xstepDraw;
+        let xstepCompute = this.xstepCompute;
+
+        if (highAcc) {
+            xstepDraw = (MaxX() - MinX()) / CanvasWidth;
+            xstepCompute = (MaxX() - MinX()) / CanvasWidth / 10;
+        }
 
         let collisionX;
         let hasPlayerCollision = false, hasObstacleCollision = false;
