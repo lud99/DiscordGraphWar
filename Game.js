@@ -72,12 +72,12 @@ class Game {
         const carvedObstacles = this.obstacles;
         const uncarvedObstacles = this.obstacles.slice();
 
-        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, true);
+        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, false, true, true);
 
         // Render everything again, but with obstacles that wont be affected if the line hits something again
         this.obstacles = uncarvedObstacles;
         this.renderer.draw(this.currentSoldierId);
-        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, false);
+        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, false, false);
         this.obstacles = carvedObstacles;
 
         const currentTurnImage = this.renderer.canvas.toDataURL();

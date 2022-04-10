@@ -34,7 +34,7 @@ class Renderer {
         this.game.soldiers.find(soldier => soldier.internalId == currentSoldierId).draw(this.ctx, true, this.scale);
     }
 
-    async RenderFunction(f, startX, startY, currentSoldierId, paint = true, carve = true) {
+    async RenderFunction(f, startX, startY, currentSoldierId, paint = true, carve = true, compute = true) {
         const ctx = this.ctx;
 
         var first = true;
@@ -97,6 +97,8 @@ class Renderer {
             return false;
         }
 
+        let prevY = null;
+
         const drawFunction = (x, constant, invert = false) => {
             if (invert)
                 var y = -f(x) + constant;
@@ -107,21 +109,26 @@ class Renderer {
 
             if (isNaN(y)) return;
 
-            if (paint) {
-                if (first) {
-                    if (y < MaxY() && y > MinY()) {
-                        ctx.moveTo(XC(x), YC(y));
-                        first = false;
-                    }
-                } else {
-                    if (y > MaxY() || y < MinY()) {
-                        ctx.stroke();
-                        first = true;
-                    } else {
+            if (first) {
+                if (y < MaxY() && y > MinY()) {
+                    ctx.moveTo(XC(x), YC(y));
+                    first = false;
+                }
+            } else {
+                if (y > MaxY() || y < MinY()) {
+                    if (prevY < MinY() && y < MinY())
                         ctx.lineTo(XC(x), YC(y));
-                    }
+                    else if (prevY > MaxY() && y > MaxY())
+                        ctx.lineTo(XC(x), YC(y));
+
+                    ctx.stroke();
+                    first = true;
+                } else {
+                    ctx.lineTo(XC(x), YC(y));
                 }
             }
+
+            prevY = y;
         }
 
         if (paint) ctx.beginPath();
@@ -129,33 +136,41 @@ class Renderer {
         let constant = startY - f(startX);
         // Go to the right
         if (startX < 0) { 
-            for (let x = startX; x <= MaxX(); x += this.xstepCompute) {
-                if (hasObstacleCollision) break;
-
-                let y = f(x) + constant;
-
-                computeFunction(x, y);
+            if (compute) {
+                for (let x = startX; x <= MaxX(); x += this.xstepCompute) {
+                    if (hasObstacleCollision) break;
+    
+                    let y = f(x) + constant;
+    
+                    computeFunction(x, y);
+                }
             }
-            for (let x = startX; x <= MaxX(); x += this.xstepDraw) {
-                if (hasObstacleCollision && x >= collisionX) break;
+            if (paint) {
+                for (let x = startX; x <= MaxX(); x += this.xstepDraw) {
+                    if (hasObstacleCollision && x >= collisionX) break;
 
-                //let y = f(x) + constant;
-                drawFunction(x, constant);
+                    //let y = f(x) + constant;
+                    drawFunction(x, constant);
+                }
             }
         } 
         // Go to the left
         else if (startX > 0) { 
-            for (let x = startX; x >= MinX(); x -= this.xstepCompute) {
-                if (hasObstacleCollision) break;
+            if (compute) {
+                for (let x = startX; x >= MinX(); x -= this.xstepCompute) {
+                    if (hasObstacleCollision) break;
 
-                let y = f(x) + constant;
+                    let y = f(x) + constant;
 
-                computeFunction(x, y);
+                    computeFunction(x, y);
+                }
             }
-            for (let x = startX; x >= MinX(); x -= this.xstepDraw) {
-                if (hasObstacleCollision && x <= collisionX) break;
-
-                drawFunction(x, constant);
+            if (paint) {
+                for (let x = startX; x >= MinX(); x -= this.xstepDraw) {
+                    if (hasObstacleCollision && x <= collisionX) break;
+    
+                    drawFunction(x, constant);
+                }
             }
         }
         
