@@ -7,7 +7,8 @@ class Renderer {
         this.canvas = createCanvas(CanvasWidth, CanvasHeight);
         this.ctx = this.canvas.getContext('2d');
 
-        this.xstep = (MaxX() - MinX()) / CanvasWidth / 10;
+        this.xstepDraw = (MaxX() - MinX()) / CanvasWidth / 10;
+        this.xstepCompute = (MaxX() - MinX()) / CanvasWidth / 50;
 
         this.gridSpacing = 5;
         this.shouldDrawGrid = true;
@@ -41,7 +42,60 @@ class Renderer {
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#ff0000";
 
+        let collisionX;
         let hasPlayerCollision = false, hasObstacleCollision = false;
+
+        const computeFunction = (x, y, xprev, yprev) => {
+            // Check for collisions
+            this.game.soldiers.forEach(soldier => {
+                if (soldier.isPointInside(x, y, -0.1) && soldier.internalId != currentSoldierId && !soldier.dead) {
+                    hasPlayerCollision = true;
+
+                    soldier.die(ctx);
+
+                    collisionX = x;
+
+                    return true;
+                }/* else {
+                    if (x > soldier.x && xprev < soldier.x) {
+                        if (y > soldier.y && yprev < soldier.y) {
+                            hasPlayerCollision = true;
+
+                            soldier.die(ctx);
+        
+                            collisionX = x;
+        
+                            return true;
+                        }
+                    }
+                }*/
+            });
+
+            // Check for obstacle collisions
+            this.game.obstacles.forEach(obstacle => {
+                if (obstacle.isPointInside(x, y, -0.1)) {
+                    hasObstacleCollision = true;
+                    if (carve) obstacle.carve(x, y, 1);
+
+                    collisionX = x;
+
+                    return true;
+                } /*else {
+                    if (x > obstacle.x && xprev < obstacle.x) {
+                        if (y > obstacle.y && yprev < obstacle.y) {
+                            hasObstacleCollision = true;
+                            if (carve) obstacle.carve(x, y, 1);
+        
+                            collisionX = x;
+        
+                            return true;
+                        }
+                    }
+                }*/
+            });
+
+            return false;
+        }
 
         const drawFunction = (x, constant, invert = false) => {
             if (invert)
@@ -49,12 +103,10 @@ class Renderer {
             else
                 var y = f(x) + constant;
 
-
             if (typeof y != "number") return;
 
             if (isNaN(y)) return;
 
-            
             if (paint) {
                 if (first) {
                     if (y < MaxY() && y > MinY()) {
@@ -70,49 +122,42 @@ class Renderer {
                     }
                 }
             }
-            
-            // Check for collisions
-            this.game.soldiers.forEach(soldier => {
-                if (soldier.isPointInside(x, y, -0.1) && soldier.internalId != currentSoldierId && !soldier.dead) {
-                    hasPlayerCollision = true;
-
-                    soldier.die(ctx);
-                }
-            });
-
-            // Check for obstacle collisions
-            this.game.obstacles.forEach(obstacle => {
-                if (obstacle.isPointInside(x, y, -0.1)) {
-                    hasObstacleCollision = true;
-                    if (carve) obstacle.carve(x, y, 1);
-                }
-            });
         }
 
         if (paint) ctx.beginPath();
 
+        let constant = startY - f(startX);
         // Go to the right
         if (startX < 0) { 
-            for (let x = startX; x <= MaxX(); x += this.xstep) {
+            for (let x = startX; x <= MaxX(); x += this.xstepCompute) {
                 if (hasObstacleCollision) break;
 
-                let constant = startY - f(startX);
+                let y = f(x) + constant;
 
+                computeFunction(x, y);
+            }
+            for (let x = startX; x <= MaxX(); x += this.xstepDraw) {
+                if (hasObstacleCollision && x >= collisionX) break;
+
+                //let y = f(x) + constant;
                 drawFunction(x, constant);
             }
         } 
         // Go to the left
         else if (startX > 0) { 
-            for (let x = startX; x >= MinX(); x -= this.xstep) {
+            for (let x = startX; x >= MinX(); x -= this.xstepCompute) {
                 if (hasObstacleCollision) break;
 
-                let constant = startY - f(startX);
+                let y = f(x) + constant;
+
+                computeFunction(x, y);
+            }
+            for (let x = startX; x >= MinX(); x -= this.xstepDraw) {
+                if (hasObstacleCollision && x <= collisionX) break;
 
                 drawFunction(x, constant);
             }
         }
-
-        
         
         if (paint) ctx.stroke();
     }
