@@ -31,7 +31,7 @@ class Game {
             rectangleSpawnRate: 0.9,
             minRadius: 2,
             maxRadius: 4,
-            gridSpacing: 5,
+            gridSpacing: 20,
             shouldDrawGrid: 0,
             playerSize: 0.35
         };
@@ -69,16 +69,10 @@ class Game {
         // else
         //     this.renderer.scale = 1;
 
-        const carvedObstacles = this.obstacles;
-        const uncarvedObstacles = this.obstacles.slice();
+        //this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, true, true);
 
-        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, false, true, true);
-
-        // Render everything again, but with obstacles that wont be affected if the line hits something again
-        this.obstacles = uncarvedObstacles;
         this.renderer.draw(this.currentSoldierId);
-        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, false, false);
-        this.obstacles = carvedObstacles;
+        this.renderer.RenderFunction(f, currentSoldier.x, currentSoldier.y, this.currentSoldierId, true, true, true);
 
         const currentTurnImage = this.renderer.canvas.toDataURL();
 
